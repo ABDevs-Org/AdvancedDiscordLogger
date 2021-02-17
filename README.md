@@ -1,4 +1,4 @@
-# CentralizedDiscordSystem
+# AdvancedDiscordLogger
 
 **Advanced Discord Logger** is a very powerful event logging tool for big network server owners.
 This system will allow owners to host a Discord Bot on their **Spigot/Paper Server** and perform certain actions like sending/receiving messages. In order to keep the load as low as possible, all the processes are async.
