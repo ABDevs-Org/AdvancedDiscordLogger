@@ -1,0 +1,18 @@
+name: AdvancedDiscordLogger
+version: @version@
+main: org.abdevs.advanceddiscordlogger.AdvancedDiscordLogger
+depend:
+  - PlaceholderAPI
+softdepend:
+  - ShopGUIPlus
+  - AdvancedBan
+  - LiteBans
+  - Matrix
+  - Spartan
+  - HackedServer
+  - CrazyCrates
+  - GriefPrevention
+  - AuthMe
+  - Votifier
+authors: [ AshuGuptaGamer ]
+website: https://abdevs.org

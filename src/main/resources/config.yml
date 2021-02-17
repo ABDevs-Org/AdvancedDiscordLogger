@@ -1,0 +1,32 @@
+#Wiki: http://adl.docs.abdevs.org/
+#Extension Setup tutorial can be found on our official Youtube Channel: http://youtube.abdevs.org/
+
+api:
+  #Java Discord API
+  JDA:
+    #Enable this API?
+    enabled: false
+    #Bot token. Check wiki on how to get the token.
+    token: ""
+    #Cache all the guild members? Increase ram usage.
+    cache-all-member: false
+    #Enabled cache flags. Check wiki for all cache flags.
+    enabled-cache-flags:
+      - ACTIVITY
+    #Disabled cache flags. Check wiki for all cache flags.
+    disabled-cache-flags:
+      - CLIENT_STATUS
+    #Enabled gateway intents. Check wiki for all cache flags.
+    enabled-gateway-intents:
+      - GUILD_MEMBERS
+      - GUILD_MESSAGE_REACTIONS
+      - GUILD_VOICE_STATES
+      - GUILD_MESSAGES
+      - GUILD_PRESENCES
+      - GUILD_EMOJIS
+    #Log channel for extension or other logs
+    log-channel: false
+    #Log guild id
+    log-guild-id: "000000000000000000"
+    #Log channel id
+    log-channel-id: "000000000000000000"
