@@ -1,5 +1,7 @@
 package org.abdevs.advanceddiscordlogger;
 
+import club.minnced.discord.webhook.external.JDAWebhookClient;
+import me.mattstudios.mf.base.CommandBase;
 import me.mattstudios.mf.base.CommandManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -10,15 +12,24 @@ import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import org.abdevs.advanceddiscordlogger.api.AdvancedDiscordLoggerAPI;
+import org.abdevs.advanceddiscordlogger.api.managers.ApiImpl;
+import org.abdevs.advanceddiscordlogger.api.managers.ExtensionManagerImpl;
+import org.abdevs.advanceddiscordlogger.api.managers.WebhookManagerImpl;
+import org.abdevs.advanceddiscordlogger.api.managers.Api;
+import org.abdevs.advanceddiscordlogger.api.managers.ExtensionManager;
+import org.abdevs.advanceddiscordlogger.api.managers.WebhookManager;
+import org.abdevs.advanceddiscordlogger.api.utils.ExtensionUtilsImpl;
+import org.abdevs.advanceddiscordlogger.api.utils.ExtensionUtils;
 import org.abdevs.advanceddiscordlogger.commands.Commands;
-import org.abdevs.advanceddiscordlogger.enities.Extension;
-import org.abdevs.advanceddiscordlogger.managers.ExtensionManager;
-import org.abdevs.advanceddiscordlogger.utils.Constants;
+import org.abdevs.advanceddiscordlogger.enities.ExtensionData;
+import org.abdevs.advanceddiscordlogger.listeners.PingCommand;
 import org.abdevs.advanceddiscordlogger.utils.Utils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
@@ -26,68 +37,119 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
 
 public final class AdvancedDiscordLogger extends JavaPlugin {
 
-    private static AdvancedDiscordLogger plugin;
+    private static final Api api = new ApiImpl();
+    private final ExtensionUtils extensionUtils = new ExtensionUtilsImpl();
+    private final ExtensionManager extensionManager = new ExtensionManagerImpl();
+    private final WebhookManager webhookManager = new WebhookManagerImpl();
+    private final List<ExtensionData> enabledExtensionData = new ArrayList<>();
+    private final ConcurrentHashMap<ExtensionData, List<Listener>> extensionListeners = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ExtensionData, List<CommandBase>> extensionCommands = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<ExtensionData, List<JDAWebhookClient>> extensionWebhooks = new ConcurrentHashMap<>();
+    private CommandManager commandManager;
+    private String logChannelId;
+    private String logGuildId;
+    private boolean isLogChannel;
+    private JDA jda;
 
+    @NotNull
+    public static Api getApi() {
+        return api;
+    }
+
+    @NotNull
     public static AdvancedDiscordLogger getPlugin() {
-        return plugin;
+        return getPlugin(AdvancedDiscordLogger.class);
+    }
+
+    public WebhookManager getWebhookManager() {
+        return webhookManager;
+    }
+
+    @NotNull
+    public ConcurrentHashMap<ExtensionData, List<JDAWebhookClient>> getExtensionWebhooks() {
+        return extensionWebhooks;
+    }
+
+    @NotNull
+    public ExtensionUtils getExtensionUtils() {
+        return extensionUtils;
+    }
+
+    @NotNull
+    public ExtensionManager getExtensionManager() {
+        return extensionManager;
+    }
+
+    @Nullable
+    public String getLogChannelId() {
+        return logChannelId;
+    }
+
+    @Nullable
+    public String getLogGuildId() {
+        return logGuildId;
+    }
+
+    public boolean isLogChannel() {
+        return isLogChannel;
+    }
+
+    @NotNull
+    public List<ExtensionData> getEnabledExtensionData() {
+        return enabledExtensionData;
+    }
+
+    @NotNull
+    public ConcurrentHashMap<ExtensionData, List<Listener>> getExtensionListeners() {
+        return extensionListeners;
+    }
+
+    @NotNull
+    public ConcurrentHashMap<ExtensionData, List<CommandBase>> getExtensionCommands() {
+        return extensionCommands;
+    }
+
+    @NotNull
+    public CommandManager getCommandManager() {
+        return commandManager;
+    }
+
+    @Nullable
+    public JDA getJda() {
+        return jda;
     }
 
     private void registerCommands() {
-        Constants.commandManager = new CommandManager(this);
-        final CommandManager commandManager = AdvancedDiscordLoggerAPI.getCommandManager();
+        commandManager = new CommandManager(this);
         commandManager.getCompletionHandler().register("#options", input -> Arrays.asList("status", "disconnect", "connect", "reconnect"));
         commandManager.getCompletionHandler().register("#actions", input -> Arrays.asList("onEnable()", "onDisable()", "load", "unload"));
         commandManager.getCompletionHandler().register("#extensions", input ->
-                AdvancedDiscordLoggerAPI.getEnabledExtensions().stream().map(Extension::getName).collect(Collectors.toList()));
-        commandManager.register(new Commands(this));
+                enabledExtensionData.stream().map(ExtensionData::getName).collect(Collectors.toList()));
+        commandManager.register(new Commands());
     }
 
     @Override
     public void onEnable() {
-        AdvancedDiscordLogger.plugin = this;
-
         saveDefaultConfig();
         final FileConfiguration config = getConfig();
+        final boolean isJDAEnabled = config.getBoolean("api.JDA.enabled");
+        isLogChannel = config.getBoolean("api.JDA.log-channel");
+        logChannelId = config.getString("api.JDA.log-channel-id");
+        logGuildId = config.getString("api.JDA.log-guild-id");
 
-        Constants.isJDAEnabled = config.getBoolean("api.JDA.enabled");
-        Constants.isLogChannel = config.getBoolean("api.JDA.log-channel");
-        Constants.logChannelId = config.getString("api.JDA.log-channel-id");
-        Constants.logGuildId = config.getString("api.JDA.log-guild-id");
-
-        if (Constants.isJDAEnabled) {
-            final String token = config.getString("api.JDA.token");
-            if (token == null || token.equalsIgnoreCase("")) {
-                Utils.log("&c&lNo login token provided! The API will not work as expected!");
-                return;
-            }
-            final List<String> enabledGatewayIntents = config.getStringList("api.JDA.enabled-gateway-intents");
-            final List<String> enabledCacheFlagsString = config.getStringList("api.JDA.enabled-cache-flags");
-            final List<String> disabledCacheFlagsString = config.getStringList("api.JDA.disabled-cache-flags");
-            final List<GatewayIntent> gatewayIntents = new ArrayList<>();
-            final List<CacheFlag> enabledCacheFlags = new ArrayList<>();
-            final List<CacheFlag> disabledCacheFlags = new ArrayList<>();
-            enabledGatewayIntents.forEach(sIntent -> gatewayIntents.add(GatewayIntent.valueOf(sIntent)));
-            enabledCacheFlagsString.forEach(sFlag -> enabledCacheFlags.add(CacheFlag.valueOf(sFlag)));
-            disabledCacheFlagsString.forEach(sFlag -> disabledCacheFlags.add(CacheFlag.valueOf(sFlag)));
-            try {
-                final JDABuilder builder = JDABuilder.createDefault(token, gatewayIntents)
-                        .disableCache(disabledCacheFlags).enableCache(enabledCacheFlags);
-                if (config.getBoolean("api.JDA.cache-all-member")) builder.setMemberCachePolicy(MemberCachePolicy.ALL);
-                Constants.jda = builder.build().awaitReady();
-            } catch (LoginException | InterruptedException e) {
-                e.printStackTrace();
-                Utils.log("&c&lFailed to start the discord bot...API will not work as expected!");
-                return;
-            }
+        if (isJDAEnabled) {
+            jda = initJDA(config);
+            if (jda != null) printInformation();
         }
 
-        printInformation();
         Utils.log("&aActive APIs to be used by other plugins:");
-        if (Constants.isJDAEnabled)
+        if (isJDAEnabled)
             Utils.log(" &c- &bJDA (Java Discord API) By DV8FromTheWorld");
         Utils.log(" &c- &bDiscord-Webhooks By MinnDevelopment, Modified By ABDevs");
         Utils.log("");
@@ -100,22 +162,47 @@ public final class AdvancedDiscordLogger extends JavaPlugin {
         Utils.log("");
         Utils.log("&c&lLoading extensions...");
         registerCommands();
-        ExtensionManager.loadExtensions(new File(AdvancedDiscordLogger.plugin.getDataFolder(), "extensions"));
-        Utils.log("&aSuccessfully enabled &e&lAdvancedDiscordLogger");
-
+        extensionManager.loadExtensions(new File(getDataFolder(), "extensions"));
         new Metrics(this, 8235);
+        Utils.log("&aSuccessfully enabled &e&lAdvancedDiscordLogger");
     }
 
     @Override
     public void onDisable() {
-        ExtensionManager.unLoadAllExtensions();
+        extensionManager.unloadAllExtensions();
         Utils.log("&cSuccessfully disabled &e&lAdvancedDiscordLogger");
     }
 
-    @SuppressWarnings("ConstantConditions")
+    private JDA initJDA(FileConfiguration config) {
+        final String token = config.getString("api.JDA.token");
+        if (token == null || token.equalsIgnoreCase("")) {
+            Utils.log("&c&lNo login token provided! The API will not work as expected!");
+            return null;
+        }
+        final List<String> enabledGatewayIntents = config.getStringList("api.JDA.enabled-gateway-intents");
+        final List<String> enabledCacheFlagsString = config.getStringList("api.JDA.enabled-cache-flags");
+        final List<String> disabledCacheFlagsString = config.getStringList("api.JDA.disabled-cache-flags");
+        final List<GatewayIntent> gatewayIntents = new ArrayList<>();
+        final List<CacheFlag> enabledCacheFlags = new ArrayList<>();
+        final List<CacheFlag> disabledCacheFlags = new ArrayList<>();
+        enabledGatewayIntents.forEach(sIntent -> gatewayIntents.add(GatewayIntent.valueOf(sIntent)));
+        enabledCacheFlagsString.forEach(sFlag -> enabledCacheFlags.add(CacheFlag.valueOf(sFlag)));
+        disabledCacheFlagsString.forEach(sFlag -> disabledCacheFlags.add(CacheFlag.valueOf(sFlag)));
+        try {
+            final JDABuilder builder = JDABuilder.createDefault(token, gatewayIntents)
+                    .disableCache(disabledCacheFlags).enableCache(enabledCacheFlags);
+            if (config.getBoolean("api.JDA.cache-all-member")) builder.setMemberCachePolicy(MemberCachePolicy.ALL);
+            if (config.getBoolean("api.JDA.ping-command.enable"))
+                builder.addEventListeners(new PingCommand(config));
+            return builder.build().awaitReady();
+        } catch (LoginException | InterruptedException e) {
+            e.printStackTrace();
+            Utils.log("&c&lFailed to start the discord bot...API will not work as expected!");
+            return null;
+        }
+    }
+
     private void printInformation() {
-        if (!AdvancedDiscordLoggerAPI.isJDAReady()) return;
-        final JDA jda = AdvancedDiscordLoggerAPI.getJda();
         final SelfUser selfUser = jda.getSelfUser();
         final String botName = selfUser.getAsTag();
         final List<Guild> guilds = jda.getGuilds();

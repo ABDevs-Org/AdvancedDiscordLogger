@@ -2,20 +2,20 @@ package org.abdevs.advanceddiscordlogger.enities;
 
 
 import com.google.gson.JsonObject;
-import org.abdevs.advanceddiscordlogger.api.IExtension;
+import org.abdevs.advanceddiscordlogger.api.base.Extension;
 
 import java.io.File;
 
-public class Extension {
+public class ExtensionData {
     private final String name;
     private final String version;
     private final String description;
     private final String author;
-    private final IExtension instance;
+    private final Extension instance;
     private final File jarFile;
     private final JsonObject configObject;
 
-    public Extension(String name, String version, String description, String author, IExtension instance, File jarFile, JsonObject configObject) {
+    public ExtensionData(String name, String version, String description, String author, Extension instance, File jarFile, JsonObject configObject) {
         this.name = name;
         this.version = version;
         this.description = description;
@@ -33,7 +33,7 @@ public class Extension {
         return jarFile;
     }
 
-    public IExtension getInstance() {
+    public Extension getInstance() {
         return instance;
     }
 

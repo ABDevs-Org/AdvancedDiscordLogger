@@ -1,5 +1,6 @@
 package org.abdevs.advanceddiscordlogger.utils;
 
+import kong.unirest.Unirest;
 import me.mattstudios.mf.annotations.Alias;
 import me.mattstudios.mf.base.CommandBase;
 import org.abdevs.advanceddiscordlogger.AdvancedDiscordLogger;
@@ -15,6 +16,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Utils {
     public static String colorize(String message) {
@@ -22,7 +24,7 @@ public class Utils {
     }
 
     public static void log(String message) {
-        Bukkit.getConsoleSender().sendMessage(colorize("&f&l[&e&lAdvancedDiscordLogger&f&l] &f" + message));
+        Bukkit.getConsoleSender().sendMessage(colorize("&f&l[&e&lADL&f&l] &f" + message));
     }
 
     private static Object getPrivateField(Object object, String field) throws SecurityException,
@@ -44,8 +46,7 @@ public class Utils {
             knownCommandsField.setAccessible(true);
             final Object map = knownCommandsField.get(commandMap);
             knownCommandsField.setAccessible(false);
-            @SuppressWarnings("unchecked")
-            final HashMap<String, Command> knownCommands = (HashMap<String, Command>) map;
+            @SuppressWarnings("unchecked") final HashMap<String, Command> knownCommands = (HashMap<String, Command>) map;
             knownCommands.remove(command);
             for (String alias : aliases)
                 if (knownCommands.containsKey(alias) &&
@@ -73,5 +74,16 @@ public class Utils {
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void requestPasteService(String paste, Consumer<String> url) {
+        final HashMap<String, Object> params = new HashMap<>();
+        params.put("code", paste);
+        params.put("title", "Advanced Discord Logger");
+        params.put("syntax", "Markup");
+        Unirest.post("https://api.teknik.io/v1/Paste").queryString(params).asJsonAsync(response -> {
+            if (!response.isSuccess()) url.accept(null);
+            else url.accept(response.getBody().getObject().getJSONObject("result").getString("url"));
+        });
     }
 }

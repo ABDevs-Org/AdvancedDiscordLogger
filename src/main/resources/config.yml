@@ -30,3 +30,9 @@ api:
     log-guild-id: "000000000000000000"
     #Log channel id
     log-channel-id: "000000000000000000"
+    #Ping Command
+    ping-command:
+      #Enable ping command?
+      enable: false
+      #Command
+      command: "!ping"
