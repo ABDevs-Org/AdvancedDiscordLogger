@@ -106,6 +106,7 @@ public class ExtensionManagerImpl implements ExtensionManager {
             final Method initMethod = Extension.class.getDeclaredMethod("init", ExtensionData.class, Logger.class, ClassLoader.class);
             initMethod.setAccessible(true);
             initMethod.invoke(instance, extensionDataInfo, logger, instance.getClass().getClassLoader());
+            initMethod.setAccessible(false);
             enabledExtensionData.add(extensionDataInfo);
             extName = extensionName;
             instance.onEnable();
