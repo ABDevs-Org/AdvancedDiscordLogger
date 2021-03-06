@@ -28,27 +28,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-/**
- * The type Extension manager.
- */
-@SuppressWarnings("unused")
 public class ExtensionManagerImpl implements ExtensionManager {
 
-    /**
-     * Load extensions in folder async.
-     *
-     * @param extensionsFolder the extensions folder
-     */
+
     @Override
     public void loadExtensionsAsync(@NotNull("Extensions folder can't be null") File extensionsFolder) {
         CompletableFuture.runAsync(() -> loadExtensions(extensionsFolder));
     }
 
-    /**
-     * Load extensions in folder.
-     *
-     * @param extensionsFolder the extensions folder
-     */
+
     @Override
     public void loadExtensions(@NotNull("Extensions folder can't be null") File extensionsFolder) {
         if (extensionsFolder.mkdir()) Utils.log("&c&lExtensions directory created successfully");
@@ -57,21 +45,13 @@ public class ExtensionManagerImpl implements ExtensionManager {
         files.forEach(this::loadExtension);
     }
 
-    /**
-     * Load extension async.
-     *
-     * @param fileName the file name
-     */
+
     @Override
     public void loadExtensionAsync(@NotNull("Extension file name can't be null") String fileName) {
         CompletableFuture.runAsync(() -> loadExtension(fileName));
     }
 
-    /**
-     * Load extension.
-     *
-     * @param fileName the file name
-     */
+
     @Override
     public void loadExtension(@NotNull("Extension file name can't be null") String fileName) {
         final File extensionsFolder = new File(AdvancedDiscordLogger.getPlugin().getDataFolder(), "extensions");
@@ -82,21 +62,13 @@ public class ExtensionManagerImpl implements ExtensionManager {
         loadExtension(file);
     }
 
-    /**
-     * Load extension async.
-     *
-     * @param jarFile the jar file
-     */
+
     @Override
     public void loadExtensionAsync(@NotNull("Extension File can't be null") File jarFile) {
         CompletableFuture.runAsync(() -> loadExtension(jarFile));
     }
 
-    /**
-     * Load extension.
-     *
-     * @param jarFile the jar file
-     */
+
     @Override
     public void loadExtension(@NotNull("Extension File can't be null") File jarFile) {
         String extName = null;
@@ -131,9 +103,9 @@ public class ExtensionManagerImpl implements ExtensionManager {
             final Extension instance = (Extension) extensionInstance;
             final ExtensionData extensionDataInfo = new ExtensionData(extensionName, extensionVersion, extensionDescription, extensionAuthor, instance, jarFile, configObject);
             final Logger logger = new Logger(extensionDataInfo);
-            final Method initMethod = Extension.class.getDeclaredMethod("init", ExtensionData.class, Logger.class);
+            final Method initMethod = Extension.class.getDeclaredMethod("init", ExtensionData.class, Logger.class, ClassLoader.class);
             initMethod.setAccessible(true);
-            initMethod.invoke(instance, extensionDataInfo, logger);
+            initMethod.invoke(instance, extensionDataInfo, logger, instance.getClass().getClassLoader());
             enabledExtensionData.add(extensionDataInfo);
             extName = extensionName;
             instance.onEnable();
@@ -150,38 +122,26 @@ public class ExtensionManagerImpl implements ExtensionManager {
         }
     }
 
-    /**
-     * Un load all extensions async.
-     */
+
     @Override
     public void unloadAllExtensionsAsync() {
         CompletableFuture.runAsync(this::unloadAllExtensions);
     }
 
-    /**
-     * Un load all extensions.
-     */
+
     @Override
     public void unloadAllExtensions() {
         final List<ExtensionData> enabledExtensionData = new ArrayList<>(AdvancedDiscordLogger.getPlugin().getEnabledExtensionData());
         enabledExtensionData.forEach(this::unloadExtension);
     }
 
-    /**
-     * Un load extension async.
-     *
-     * @param jarFile the jar file
-     */
+
     @Override
     public void unloadExtensionAsync(@NotNull("Extension File can't be null") File jarFile) {
         CompletableFuture.runAsync(() -> unloadExtension(jarFile));
     }
 
-    /**
-     * Un load extension.
-     *
-     * @param jarFile the jar file
-     */
+
     @Override
     public void unloadExtension(@NotNull("Extension File can't be null") File jarFile) {
         final List<ExtensionData> enabledExtensionData = AdvancedDiscordLogger.getPlugin().getEnabledExtensionData();
@@ -192,21 +152,13 @@ public class ExtensionManagerImpl implements ExtensionManager {
         unloadExtension(extInfo);
     }
 
-    /**
-     * Un load extension async.
-     *
-     * @param extensionName the extension name
-     */
+
     @Override
     public void unloadExtensionAsync(@NotNull("Extension name can't be null") String extensionName) {
         CompletableFuture.runAsync(() -> unloadExtension(extensionName));
     }
 
-    /**
-     * Un load extension.
-     *
-     * @param extensionName the extension name
-     */
+
     @Override
     public void unloadExtension(@NotNull("Extension name can't be null") String extensionName) {
         final ExtensionData extensionData = AdvancedDiscordLogger.getApi().getExtension(extensionName);
@@ -215,21 +167,13 @@ public class ExtensionManagerImpl implements ExtensionManager {
         unloadExtension(extensionData);
     }
 
-    /**
-     * Un load extension async.
-     *
-     * @param extensionData the extension
-     */
+
     @Override
     public void unloadExtensionAsync(@NotNull("Extension can't be null") ExtensionData extensionData) {
         CompletableFuture.runAsync(() -> unloadExtension(extensionData));
     }
 
-    /**
-     * Un load extension.
-     *
-     * @param extensionData the extension
-     */
+
     @Override
     public void unloadExtension(@NotNull ExtensionData extensionData) {
         Utils.log("&e&lDisabling " + extensionData.getName() + " extension...");

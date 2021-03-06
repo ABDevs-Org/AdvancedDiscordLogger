@@ -40,6 +40,9 @@ public interface Api {
     @NotNull
     ConcurrentHashMap<ExtensionData, List<CommandBase>> getExtensionCommands();
 
+    /**
+     * @return All the registered {@link JDAWebhookClient} by {@link ExtensionData}.
+     */
     @NotNull
     ConcurrentHashMap<ExtensionData, List<JDAWebhookClient>> getExtensionWebhooks();
 
@@ -63,12 +66,22 @@ public interface Api {
     @Nullable
     ExtensionData getExtension(String extensionName);
 
+    /**
+     * @return instance of {@link ExtensionUtils} containing helpful functions
+     * to be used by other extensions.
+     */
     @NotNull
     ExtensionUtils getExtensionUtils();
 
+    /**
+     * @return instance of {@link ExtensionManager} to manage extensions.
+     */
     @NotNull
     ExtensionManager getExtensionManager();
 
+    /**
+     * @return instance of {@link WebhookManager} to work with webhook integrations.
+     */
     @NotNull
     WebhookManager getWebhookManager();
 }

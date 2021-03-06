@@ -57,11 +57,17 @@ public final class AdvancedDiscordLogger extends JavaPlugin {
     private boolean isLogChannel;
     private JDA jda;
 
+    /**
+     * @return API to be used to communicate with the plugin.
+     */
     @NotNull
     public static Api getApi() {
         return api;
     }
 
+    /**
+     * @return instance of this plugin class.
+     */
     @NotNull
     public static AdvancedDiscordLogger getPlugin() {
         return getPlugin(AdvancedDiscordLogger.class);

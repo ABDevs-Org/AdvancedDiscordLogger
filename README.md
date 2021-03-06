@@ -19,3 +19,4 @@ This system will allow owners to host a Discord Bot on their **Spigot/Paper Serv
 * Logback Classic
 * Discord Webhooks
 * Matt Command Framework
+* Unirest

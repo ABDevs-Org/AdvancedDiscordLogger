@@ -47,12 +47,6 @@ import java.util.function.Consumer;
 @SuppressWarnings({"unused"})
 public class ExtensionUtilsImpl implements ExtensionUtils {
 
-    /**
-     * @param folderName Name of the extension folder
-     * @param clazz      Main class of the extension
-     * @param fileName   Name of the resource file
-     * @return configuration
-     */
     @Override
     @Nullable
     public FileConfiguration createOrFetchConfig(@NotNull String folderName, @NotNull Class<?> clazz, @NotNull String fileName) {
@@ -84,11 +78,6 @@ public class ExtensionUtilsImpl implements ExtensionUtils {
         return null;
     }
 
-    /**
-     * @param extension extension.
-     * @param listeners listeners to register.
-     * @throws IllegalArgumentException if no extension with name extensionName is active or exists.
-     */
     @Override
     public void registerListeners(@NotNull ExtensionData extension, @NotNull Listener... listeners) {
         final AdvancedDiscordLogger plugin = AdvancedDiscordLogger.getPlugin();
@@ -103,11 +92,6 @@ public class ExtensionUtilsImpl implements ExtensionUtils {
         extensionListeners.put(extension, listenersToAdd);
     }
 
-    /**
-     * @param extension extension.
-     * @param commands  commands to register.
-     * @throws IllegalArgumentException if no extension with name extensionName is active or exists.
-     */
     @Override
     public void registerCommands(@NotNull ExtensionData extension, @NotNull CommandBase... commands) {
         final AdvancedDiscordLogger plugin = AdvancedDiscordLogger.getPlugin();
@@ -121,76 +105,22 @@ public class ExtensionUtilsImpl implements ExtensionUtils {
         extensionCommands.put(extension, commandsToAdd);
     }
 
-    /**
-     * @param message string message to be parsed
-     * @return message with color codes
-     */
     @Override
     @NotNull
     public String colorize(@NotNull String message) {
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 
-    /**
-     * @param message   string message to print on the console
-     * @param extension extension.
-     * @throws IllegalArgumentException if no extension with name extensionName is active or exists.
-     */
     @Override
     @Deprecated
     public void eLog(@NotNull String message, @NotNull ExtensionData extension) {
         Utils.log("&c[&b" + extension.getName() + "&c] &r" + message);
     }
 
-    /**
-     * Sends log message to discord. Length of message can't be more than 2048
-     *
-     * @param message   string message to be send to discord log channel characters.
-     * @param level     log level
-     * @param extension extension.
-     * @throws IllegalArgumentException if no extension with name extensionName is active or exists or
-     *                                  {@param message} length is more then 2048 characters.
-     */
     @Override
+    @Deprecated
     public void eDiscordLog(@NotNull String message, @NotNull LogLevel level, @NotNull ExtensionData extension) {
-        final AdvancedDiscordLogger plugin = AdvancedDiscordLogger.getPlugin();
-        if (!plugin.isLogChannel() || !AdvancedDiscordLogger.getApi().isJDAReady()) return;
-        if (message.length() > 2048)
-            throw new IllegalArgumentException("Length of message can't be more than 2048 characters");
-        //noinspection ConstantConditions
-        final Guild guild = plugin.getJda().getGuildById(plugin.getLogGuildId());
-        if (guild == null) {
-            Utils.log("&cThe log guild id provided is invalid!");
-            return;
-        }
-        //noinspection ConstantConditions
-        final TextChannel channel = guild.getTextChannelById(plugin.getLogChannelId());
-        if (channel == null) {
-            Utils.log("&cThe log channel id provided is invalid!");
-            return;
-        }
-        final EmbedBuilder builder = new EmbedBuilder();
-        builder.setDescription(message).setAuthor(extension.getName())
-                .setTimestamp(Instant.now()).setFooter("AdvancedDiscordLogger");
-        switch (level) {
-            case SUCCESS: {
-                builder.setColor(Color.GREEN);
-                break;
-            }
-            case INFO: {
-                builder.setColor(Color.CYAN);
-                break;
-            }
-            case WARN: {
-                builder.setColor(0xfa8e3c);
-                break;
-            }
-            case SEVERE: {
-                builder.setColor(Color.RED);
-                break;
-            }
-        }
-        channel.sendMessage(builder.build()).queue();
+        Utils.sendDiscordLog(message, level, extension);
     }
 
     @Override
