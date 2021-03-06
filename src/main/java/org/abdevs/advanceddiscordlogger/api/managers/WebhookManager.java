@@ -17,7 +17,7 @@ public interface WebhookManager {
     JDAWebhookClient buildJDA(@NotNull String webhookUrl, @NotNull ExtensionData extension);
 
     /**
-     * Gets {@link JDAWebhookClient} from {@param id}.
+     * Gets {@link JDAWebhookClient} from id.
      *
      * @param id        the id
      * @param extension the extension
@@ -27,7 +27,7 @@ public interface WebhookManager {
     JDAWebhookClient getClient(long id, @NotNull ExtensionData extension);
 
     /**
-     * Gets {@link JDAWebhookClient} from {@param webhookUrl}.
+     * Gets {@link JDAWebhookClient} from webhookUrl.
      *
      * @param webhookUrl the webhook url
      * @param extension  the extension
@@ -36,7 +36,7 @@ public interface WebhookManager {
     @Nullable JDAWebhookClient getClient(@NotNull String webhookUrl, @NotNull ExtensionData extension);
 
     /**
-     * Close {@link JDAWebhookClient} from {@param webhookUrl}.
+     * Close {@link JDAWebhookClient} from webhookUrl.
      *
      * @param webhookUrl the webhook url
      * @param extension  the extension
@@ -44,7 +44,7 @@ public interface WebhookManager {
     void closeClient(@NotNull String webhookUrl, @NotNull ExtensionData extension);
 
     /**
-     * Close {@link JDAWebhookClient} from {@param id}.
+     * Close {@link JDAWebhookClient} from id.
      *
      * @param id        the id
      * @param extension the extension
@@ -52,7 +52,7 @@ public interface WebhookManager {
     void closeClient(long id, @NotNull ExtensionData extension);
 
     /**
-     * Close the provided {@param client}.
+     * Close the provided client.
      *
      * @param client    the client
      * @param extension the extension

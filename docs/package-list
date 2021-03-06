@@ -1,0 +1,8 @@
+org.abdevs.advanceddiscordlogger
+org.abdevs.advanceddiscordlogger.api.base
+org.abdevs.advanceddiscordlogger.api.managers
+org.abdevs.advanceddiscordlogger.api.utils
+org.abdevs.advanceddiscordlogger.commands
+org.abdevs.advanceddiscordlogger.enities
+org.abdevs.advanceddiscordlogger.listeners
+org.abdevs.advanceddiscordlogger.utils

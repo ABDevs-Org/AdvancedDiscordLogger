@@ -73,7 +73,7 @@ public interface ExtensionUtils {
      * @param message   string message to be send to discord log channel characters.
      * @param level     log level
      * @param extension extension.
-     * @throws IllegalArgumentException {@param message} length is more then 2048 characters.
+     * @throws IllegalArgumentException message length is more then 2048 characters.
      * @deprecated Use {@link Extension#getLogger()}
      */
     @Deprecated
