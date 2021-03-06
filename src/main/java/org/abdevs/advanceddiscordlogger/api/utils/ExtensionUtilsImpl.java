@@ -8,7 +8,6 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.mattstudios.mf.base.CommandBase;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.md_5.bungee.api.ChatColor;
@@ -29,7 +28,6 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -273,7 +271,7 @@ public class ExtensionUtilsImpl implements ExtensionUtils {
         executeCommands(actionCommands, player);
         final ConfigurationSection logMessageSection = config.getConfigurationSection("log-message");
         if (logMessageSection == null) return;
-        final String message = setPlaceholders(player,emptyStringToNull(logMessageSection.getString("message")));
+        final String message = setPlaceholders(player, emptyStringToNull(logMessageSection.getString("message")));
         final ConfigurationSection embedSection = logMessageSection.getConfigurationSection("embed");
         final EmbedBuilder embedBuilder;
         if (embedSection != null) embedBuilder = embedFromSection(embedSection, player);
